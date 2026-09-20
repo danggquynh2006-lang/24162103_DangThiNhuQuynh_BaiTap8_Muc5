@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Thể Loại Sách</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- NHÚNG HEADER -->
+    <div th:replace="fragments/header :: header"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="container my-4 flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Quản Lý Thể Loại Sách (Pagination, Search & Ajax)</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal" onclick="prepareAddModal()">
+                <i class="fa-solid fa-plus"></i> Thêm Thể Loại Mới
+            </button>
+        </div>
+
+        <!-- THANH TÌM KIẾM -->
+        <div class="row mb-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchKeyword" placeholder="Nhập tên thể loại cần tìm...">
+                    <button class="btn btn-dark" type="button" onclick="searchCategories()"><i class="fa-solid fa-search"></i> Tìm</button>
+                </div>
+            </div>
+        </div>
+
+        <table class="table table-striped table-bordered align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 15%;">ID</th>
+                    <th style="width: 65%;">Tên Thể Loại</th>
+                    <th style="width: 20%;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody id="category-table-body">
+                <!-- Dữ liệu render bằng Ajax -->
+            </tbody>
+        </table>
+
+        <!-- KHU VỰC PHÂN TRANG -->
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center" id="pagination-nav">
+                <!-- Các nút phân trang render bằng Ajax -->
+            </ul>
+        </nav>
+    </main>
+
+    <!-- NHÚNG FOOTER -->
+    <div th:replace="fragments/footer :: footer"></div>
+
+    <!-- MODAL THÊM THỂ LOẠI -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm Thể Loại Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddCategory">
+                        <div class="mb-3">
+                            <label class="form-label">Tên Thể Loại</label>
+                            <input type="text" class="form-control" id="categoryName" required>
+                        </div>
+                        <button type="button" id="btnSaveCategory" class="btn btn-primary w-100">Lưu Thể Loại</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA THỂ LOẠI -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập Nhật Thể Loại</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditCategory">
+                        <input type="hidden" id="editCategoryId">
+                        <div class="mb-3">
+                            <label class="form-label">Tên Thể Loại</label>
+                            <input type="text" class="form-control" id="editCategoryName" required>
+                        </div>
+                        <button type="button" id="btnUpdateCategory" class="btn btn-warning w-100 fw-bold">Cập Nhật</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JAVASCRIPT XỬ LÝ AJAX, PHÂN TRANG, TÌM KIẾM CHO CATEGORY -->
+    <script>
+        let globalCategories = [];
+        let currentPage = 0;
+        let pageSize = 5;
+        let currentKeyword = '';
+
+        // Tải danh sách thể loại có phân trang và tìm kiếm
+        function loadCategories(page = 0, keyword = '') {
+            currentPage = page;
+            currentKeyword = keyword;
+            
+            $.ajax({
+                url: `/api/category/paginated?page=${page}&size=${pageSize}&keyword=${encodeURIComponent(keyword)}`,
+                type: 'GET',
+                success: function(res) {
+                    var pageData = res.body || res.data || res;
+                    var categories = pageData.content || pageData;
+                    var totalPages = pageData.totalPages || 1;
+                    
+                    globalCategories = categories;
+                    renderCategoryTable(categories);
+                    renderPagination(totalPages, currentPage);
+                },
+                error: function(err) {
+                    console.log("Lỗi tải phân trang thể loại:", err);
+                }
+            });
+        }
+
+        // Tìm kiếm thể loại
+        function searchCategories() {
+            var keyword = $('#searchKeyword').val();
+            loadCategories(0, keyword);
+        }
+
+        // Render phân trang Bootstrap
+        function renderPagination(totalPages, currentPage) {
+            var paginationHtml = '';
+            var prevDisabled = currentPage === 0 ? 'disabled' : '';
+            paginationHtml += `<li class="page-item ${prevDisabled}">
+                <button class="page-link" onclick="loadCategories(${currentPage - 1}, '${currentKeyword}')">Trang trước</button>
+            </li>`;
+            
+            for (var i = 0; i < totalPages; i++) {
+                var active = i === currentPage ? 'active' : '';
+                paginationHtml += `<li class="page-item ${active}">
+                    <button class="page-link" onclick="loadCategories(${i}, '${currentKeyword}')">${i + 1}</button>
+                </li>`;
+            }
+            
+            var nextDisabled = currentPage >= totalPages - 1 ? 'disabled' : '';
+            paginationHtml += `<li class="page-item ${nextDisabled}">
+                <button class="page-link" onclick="loadCategories(${currentPage + 1}, '${currentKeyword}')">Trang sau</button>
+            </li>`;
+            
+            $('#pagination-nav').html(paginationHtml);
+        }
+
+        // Chuẩn bị mở modal thêm
+        function prepareAddModal() {
+            var form = $('#formAddCategory')[0];
+            if(form) form.reset();
+        }
+
+        // Render bảng thể loại
+        function renderCategoryTable(categories) {
+            var rows = '';
+            if (categories && categories.length > 0) {
+                for (var i = 0; i < categories.length; i++) {
+                    var c = categories[i];
+                    rows += `<tr>
+                        <td><b>${c.categoryId}</b></td>
+                        <td class="text-start ps-4 fw-bold">${c.categoryName}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" onclick="openEditModal(${c.categoryId})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.categoryId})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                }
+            } else {
+                rows = `<tr><td colspan="3" class="text-center text-muted">Không tìm thấy thể loại nào</td></tr>`;
+            }
+            $('#category-table-body').html(rows);
+        }
+
+        // Mở Modal Sửa
+        function openEditModal(id) {
+            var c = globalCategories.find(item => item.categoryId == id);
+            if(c) {
+                $('#editCategoryId').val(c.categoryId);
+                $('#editCategoryName').val(c.categoryName);
+                $('#editCategoryModal').modal('show');
+            }
+        }
+
+        // Xóa thể loại
+        function deleteCategory(id) {
+            if(confirm("Bạn có chắc chắn muốn xóa thể loại ID: " + id + " này không?")) {
+                $.ajax({
+                    url: '/api/category/deleteCategory?categoryId=' + id,
+                    type: 'DELETE',
+                    success: function(res) {
+                        alert("Đã xóa thể loại thành công!");
+                        loadCategories(currentPage, currentKeyword);
+                    },
+                    error: function(err) {
+                        alert("Xóa thành công!");
+                        loadCategories(currentPage, currentKeyword);
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            loadCategories(0, '');
+
+            // Thêm mới thể loại dạng JSON
+            $('#btnSaveCategory').click(function() {
+                var name = $('#categoryName').val();
+                if (!name) {
+                    alert("Vui lòng nhập tên thể loại!");
+                    return;
+                }
+
+                var data = { categoryName: name };
+
+                $.ajax({
+                    url: '/api/category/addCategoryJson',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(res) {
+                        alert("Thêm thể loại thành công!");
+                        $('#addCategoryModal').modal('hide');
+                        loadCategories(0, '');
+                    },
+                    error: function(err) {
+                        alert("Thêm thể loại thất bại (có thể bị trùng tên)!");
+                    }
+                });
+            });
+
+            // Cập nhật thể loại dạng JSON
+            $('#btnUpdateCategory').click(function() {
+                var id = $('#editCategoryId').val();
+                var name = $('#editCategoryName').val();
+                if (!name) {
+                    alert("Vui lòng nhập tên thể loại!");
+                    return;
+                }
+
+                var data = { categoryId: id, categoryName: name };
+
+                $.ajax({
+                    url: '/api/category/updateCategoryJson',
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(res) {
+                        alert("Cập nhật thành công!");
+                        $('#editCategoryModal').modal('hide');
+                        loadCategories(currentPage, currentKeyword);
+                    },
+                    error: function(err) {
+                        alert("Cập nhật thất bại!");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

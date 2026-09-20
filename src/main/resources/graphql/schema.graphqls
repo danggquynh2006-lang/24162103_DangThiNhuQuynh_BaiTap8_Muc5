@@ -1,0 +1,37 @@
+type Category {
+    categoryId: ID!
+    categoryName: String!
+    icon: String
+}
+
+type Product {
+    productId: ID!
+    productName: String!
+    quantity: Int!
+    unitPrice: Float!
+    images: String
+    description: String
+    discount: Float
+    status: Int
+    category: Category
+}
+
+type Query {
+    allProductsSortedByPrice: [Product]
+    productsByCategoryId(categoryId: ID!): [Product]
+    products: [Product]
+}
+
+input ProductInput {
+    productName: String!
+    quantity: Int!
+    unitPrice: Float!
+    images: String
+    description: String
+    discount: Float
+    status: Int
+}
+
+type Mutation {
+    createProduct(product: ProductInput): Product
+}
