@@ -8,11 +8,11 @@ public class HomeController {
 
     @GetMapping("/")
     public String home() {
-        return "home"; // Trỏ tới file home.html trong thư mục templates
+        return "home";
     }
     
     @GetMapping("/category")
     public String categoryPage() {
-        return "category"; // Trỏ tới file category.html trong thư mục templates
+        return "category";
     }
 }

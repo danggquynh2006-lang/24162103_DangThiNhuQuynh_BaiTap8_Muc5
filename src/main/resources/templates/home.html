@@ -187,13 +187,11 @@
                     $('#editProductCategory').html(options);
                     $('#filterCategory').html(filterOptions);
 
-                    // Sau khi load thể loại xong thì gọi load sản phẩm
                     loadProducts(0);
                 }
             });
         }
 
-     // Tải danh sách sản phẩm (Hợp nhất Phân trang, Tìm kiếm, Lọc Thể loại)
         function loadProducts(page = 0) {
             currentPage = page;
             var keyword = $('#searchKeyword').val() || '';
@@ -212,17 +210,13 @@
                     var products = pageData.content || pageData;
                     var totalPages = pageData.totalPages || 1;
                     
-                    // 👉 GẮN BÙ TÊN THỂ LOẠI DỰA TRÊN MẢNG GLOBAL CATEGORIES ĐÃ TẢI SẴN
                     if (products && products.length > 0) {
                         for (var i = 0; i < products.length; i++) {
                             var p = products[i];
-                            
-                            // 1. Cố gắng lấy ID thể loại từ mọi ngóc ngách của object product
                             var catId = null;
                             if (p.category) {
                                 if (typeof p.category === 'object') {
                                     catId = p.category.categoryId || p.category.id;
-                                    // Nếu object category đã có sẵn tên rồi thì giữ nguyên
                                     if (p.category.categoryName) continue; 
                                 } else {
                                     catId = p.category;
@@ -232,15 +226,12 @@
                                 catId = p.categoryId;
                             }
                             
-                            // 2. Nếu tìm thấy ID, dò trong globalCategories để lấy tên gán vào
                             if (catId && globalCategories && globalCategories.length > 0) {
                                 var matched = globalCategories.find(c => c.categoryId == catId);
                                 if (matched) {
                                     p.category = { categoryId: matched.categoryId, categoryName: matched.categoryName };
                                 }
                             }
-                            
-                            // 3. Phòng hờ nếu đang lọc theo dropdown thể loại cụ thể
                             if ((!p.category || !p.category.categoryName) && categoryId && categoryId !== 'all') {
                                 var selectedName = $('#filterCategory option:selected').text();
                                 p.category = { categoryName: selectedName };

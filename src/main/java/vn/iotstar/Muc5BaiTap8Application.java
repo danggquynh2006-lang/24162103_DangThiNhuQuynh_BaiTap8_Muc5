@@ -25,7 +25,6 @@ public class Muc5BaiTap8Application implements WebMvcConfigurer {
         });
     }
 
-    // Cấu hình ánh xạ thư mục upload để hiển thị ảnh trên web
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/upload-dir/**")

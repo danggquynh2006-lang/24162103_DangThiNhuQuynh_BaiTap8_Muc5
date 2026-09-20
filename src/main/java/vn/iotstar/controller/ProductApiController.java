@@ -33,7 +33,6 @@ public class ProductApiController {
     @Autowired
     private IStorageService storageService;
 
-    // API Thêm sản phẩm mới
     @PostMapping(path = "/addProduct")
     public ResponseEntity<?> addProduct(
             @RequestParam("productName") String productName,
@@ -72,8 +71,7 @@ public class ProductApiController {
 
         return new ResponseEntity<Response>(new Response(true, "Thêm sản phẩm thành công", product), HttpStatus.OK);
     }
-
-    // API Cập nhật sản phẩm
+    
     @PutMapping(path = "/updateProduct/{id}")
     public ResponseEntity<?> updateProduct(
             @PathVariable("id") Long id,
@@ -118,12 +116,7 @@ public class ProductApiController {
 
         return new ResponseEntity<Response>(new Response(true, "Cập nhật thành công", product), HttpStatus.OK);
     }
-    
 
-
- // API Phân trang, tìm kiếm và lọc theo Thể loại
- // API Phân trang, tìm kiếm và lọc theo Thể loại
- // API Phân trang, tìm kiếm và lọc theo Thể loại
     @GetMapping(path = "/paginated")
     public ResponseEntity<?> getProductsPaginated(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -142,10 +135,8 @@ public class ProductApiController {
             productPage = productService.findAll(pageable);
         }
         
-        // 👉 LUÔN LUÔN CHẠY VÒNG LẶP NÀY CHO MỌI TRƯỜNG HỢP (Tất cả, Tìm kiếm, hay Lọc)
         for (Product p : productPage.getContent()) {
             if (p.getCategory() != null && p.getCategory().getCategoryId() != null) {
-                // Tự động gọi service tìm category theo ID để lấy đầy đủ tên thể loại gắn vào
                 categoryService.findById(p.getCategory().getCategoryId()).ifPresent(cat -> {
                     p.getCategory().setCategoryName(cat.getCategoryName());
                 });
@@ -155,7 +146,6 @@ public class ProductApiController {
         return new ResponseEntity<Response>(new Response(true, "Thành công", productPage), HttpStatus.OK);
     }
     
-    // API Xóa sản phẩm
     @DeleteMapping(path = "/delete/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable("id") Long id) {
         Optional<Product> product = productService.findById(id);

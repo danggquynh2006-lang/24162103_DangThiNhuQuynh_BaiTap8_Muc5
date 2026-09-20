@@ -30,7 +30,6 @@ public class ProductGraphController {
         return productRepository.findAll();
     }
 
-    // Xử lý Mutation thêm sách từ GraphQL
     @MutationMapping
     public Product createProduct(@Argument ProductInput product) {
         Product newProduct = new Product();
@@ -45,7 +44,6 @@ public class ProductGraphController {
     }
 }
 
-// Class hỗ trợ nhận dữ liệu input từ GraphQL mutation
 class ProductInput {
     private String productName;
     private int quantity;
@@ -53,7 +51,6 @@ class ProductInput {
     private String images;
     private String description;
     
-    // Getter và Setter
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
     public int getQuantity() { return quantity; }

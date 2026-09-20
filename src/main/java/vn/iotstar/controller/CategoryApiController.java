@@ -24,13 +24,11 @@ public class CategoryApiController {
     @Autowired
     IStorageService storageService;
 
-    // Lấy tất cả category (dùng cho dropdown select)
     @GetMapping
     public ResponseEntity<?> getAllCategory() {
         return new ResponseEntity<Response>(new Response(true, "Thành công", categoryService.findAll()), HttpStatus.OK);
     }
 
-    // API Phân trang và tìm kiếm Category
     @GetMapping(path = "/paginated")
     public ResponseEntity<?> getCategoriesPaginated(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -49,7 +47,6 @@ public class CategoryApiController {
         return new ResponseEntity<Response>(new Response(true, "Thành công", categoryPage), HttpStatus.OK);
     }
 
-    // Thêm category nhận dữ liệu dạng JSON từ Ajax
     @PostMapping(path = "/addCategoryJson")
     public ResponseEntity<?> addCategoryJson(@RequestBody Category categoryInput) {
         Optional<Category> optCategory = categoryService.findAll().stream()
@@ -67,7 +64,6 @@ public class CategoryApiController {
         return new ResponseEntity<Response>(new Response(true, "Thêm thành công", category), HttpStatus.OK);
     }
     
-    // Cập nhật category nhận dữ liệu dạng JSON từ Ajax
     @PutMapping(path = "/updateCategoryJson")
     public ResponseEntity<?> updateCategoryJson(@RequestBody Category categoryInput) {
         Optional<Category> optCategory = categoryService.findById(categoryInput.getCategoryId());
@@ -82,7 +78,6 @@ public class CategoryApiController {
         return new ResponseEntity<Response>(new Response(true, "Cập nhật thành công", category), HttpStatus.OK);
     }
 
-    // Xóa category
     @DeleteMapping(path = "/deleteCategory")
     public ResponseEntity<?> deleteCategory(@Validated @RequestParam("categoryId") Long categoryId) {
         Optional<Category> optCategory = categoryService.findById(categoryId);

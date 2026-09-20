@@ -9,7 +9,7 @@ import vn.iotstar.entity.Product;
 
 public interface IProductService {
     List<Product> findAll();
-    Page<Product> findAll(Pageable pageable); // Thêm hàm phân trang findAll
+    Page<Product> findAll(Pageable pageable);
     Optional<Product> findById(Long id);
     Product save(Product product);
     void delete(Long id);
